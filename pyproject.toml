@@ -1,0 +1,37 @@
+[project]
+name = "stroke-risk"
+version = "0.1.0"
+description = "Leak-free stroke risk prediction: data pipeline, models, and deployment."
+readme = "README.md"
+authors = [
+    { name = "Kazimieras Badokas", email = "badokas.ka@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.2",
+    "pandas>=3.0.5",
+    "scikit-learn>=1.9.0",
+]
+
+[project.scripts]
+stroke-risk = "stroke_risk:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.5",
+]
+
+[tool.ruff]
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

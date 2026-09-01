@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments
+.venv/
+
+# OS files
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (educational-license dataset, not redistributed)
+data/*
+!data/.gitkeep
+!data/README.md
+
+# Model artifacts
+models/
+*.joblib
+
+# Old project kept locally for reference, not tracked
+old-project/
