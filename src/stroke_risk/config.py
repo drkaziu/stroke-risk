@@ -9,6 +9,7 @@ from pathlib import Path
 # Repo root is two levels up from this file: src/stroke_risk/config.py -> repo/
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_PATH = PROJECT_ROOT / "data" / "dataset.csv"
+MODEL_PATH = PROJECT_ROOT / "models" / "stroke_model.joblib"
 
 RANDOM_SEED = 42
 
