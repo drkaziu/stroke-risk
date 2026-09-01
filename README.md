@@ -92,3 +92,10 @@ See [data/README.md](data/README.md).
 
 Source code is licensed under the [MIT License](LICENSE). The license covers the
 code only, **not** the dataset (see [Data](#data)).
+
+## Acknowledgements
+
+This project was developed with the assistance of **agentic AI coding tools**.
+AI was used to help scaffold the project, write and refactor code, structure the
+analysis, and draft documentation. All design decisions, review, and validation
+were done by the author.
