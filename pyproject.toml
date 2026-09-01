@@ -6,6 +6,8 @@ readme = "README.md"
 authors = [
     { name = "Kazimieras Badokas", email = "badokas.ka@gmail.com" }
 ]
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.141.1",
@@ -18,9 +20,6 @@ dependencies = [
     "uvicorn>=0.52.4",
     "xgboost>=3.4.1",
 ]
-
-[project.scripts]
-stroke-risk = "stroke_risk:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
@@ -41,6 +40,10 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Notebooks favour readable, exploratory code over strict library rules.
+"notebooks/*" = ["E501", "E402", "B905"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
