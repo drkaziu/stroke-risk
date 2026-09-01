@@ -7,6 +7,7 @@ the model.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -23,9 +24,10 @@ class DataSplits:
     test: pd.DataFrame
 
 
-def load_raw(path=config.DATA_PATH) -> pd.DataFrame:
+def load_raw(path: Path | None = None) -> pd.DataFrame:
     """Load the raw dataset exactly as stored, with no cleaning applied."""
-    return pd.read_csv(path)
+    # Resolve at call time so the path can be overridden (e.g. in tests/CI).
+    return pd.read_csv(path or config.DATA_PATH)
 
 
 def split_data(

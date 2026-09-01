@@ -19,6 +19,7 @@ wheels/
 data/*
 !data/.gitkeep
 !data/README.md
+!data/sample.csv
 
 # Model artifacts
 models/
