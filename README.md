@@ -7,7 +7,7 @@ professional, reproducible data science project.
 
 ## Status
 
-Phase 1 — leak-free, reproducible data pipeline (in progress).
+Phase 2 — modelling (logistic regression + XGBoost, leak-free evaluation).
 
 ## Setup
 
@@ -15,6 +15,12 @@ Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync
+```
+
+On macOS, XGBoost needs the OpenMP runtime:
+
+```bash
+brew install libomp
 ```
 
 Place the dataset at `data/dataset.csv` (see [data/README.md](data/README.md)).
