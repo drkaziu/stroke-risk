@@ -36,7 +36,9 @@ def test_no_overlap_between_splits(splits):
 def test_stratification_preserved(raw, splits):
     overall = raw[config.TARGET].mean()
     for part in (splits.train, splits.val, splits.test):
-        assert part[config.TARGET].mean() == pytest.approx(overall, abs=0.005)
+        # Tolerance scales with split size: one sample is the finest granularity.
+        tol = 1.5 / len(part)
+        assert part[config.TARGET].mean() == pytest.approx(overall, abs=tol)
 
 
 def test_split_is_deterministic(raw):
