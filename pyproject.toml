@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Leak-free stroke risk prediction: data pipeline, models, and deployment."
 readme = "README.md"
 authors = [
-    { name = "Kazimieras Badokas", email = "badokas.ka@gmail.com" }
+    { name = "Kazimieras Badokas", email = "194726565+drkaziu@users.noreply.github.com" }
 ]
 license = "MIT"
 license-files = ["LICENSE"]
