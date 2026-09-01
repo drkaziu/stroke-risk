@@ -7,7 +7,7 @@ professional, reproducible data science project.
 
 ## Status
 
-Phase 2 — modelling (logistic regression + XGBoost, leak-free evaluation).
+Phase 4 — deployment (tuned model served via FastAPI).
 
 ## Setup
 
@@ -25,6 +25,15 @@ brew install libomp
 
 Place the dataset at `data/dataset.csv` (see [data/README.md](data/README.md)).
 
+## Train and serve
+
+```bash
+uv run python -m stroke_risk.train          # tune, select, save models/stroke_model.joblib
+uv run uvicorn app.main:app --reload        # serve at http://127.0.0.1:8000
+```
+
+Open http://127.0.0.1:8000 for the UI, or http://127.0.0.1:8000/docs for the API.
+
 ## Development
 
 ```bash
@@ -35,7 +44,10 @@ uv run ruff check  # lint
 ## Project layout
 
 ```
-src/stroke_risk/   # importable package (data pipeline, models)
+src/stroke_risk/   # importable package (data, features, model, tune, train)
+app/               # FastAPI serving layer + UI
+notebooks/         # EDA, modelling, tuning
 tests/             # pytest suite
 data/              # raw dataset (not tracked)
+models/            # trained artifacts (not tracked)
 ```
