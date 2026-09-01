@@ -1,13 +1,38 @@
 # Stroke Risk
 
-Predicting stroke risk from clinical and demographic features — rebuilt as a
-professional, reproducible data science project.
+Predicting stroke risk from clinical and demographic features — built as a
+professional, reproducible, end-to-end data science project (data pipeline →
+EDA → modelling → tuning → deployed API).
 
-> Educational project. **Not** for real clinical use.
+> ## ⚠️ Disclaimer
+> **This is an educational sample project, not a medical device.**
+> It must **not** be used for real diagnosis, screening, or any clinical
+> decision. The model is trained on a small public dataset, its probabilities
+> are uncalibrated, and its accuracy is limited. Nothing here is medical advice.
+> If you have health concerns, consult a qualified clinician.
 
-## Status
+## What it does
 
-Phase 4 — deployment (tuned model served via FastAPI).
+- Cleans and splits the data **without leakage** (all learned steps fit on the training set only).
+- Explores the data (EDA) and trains two models — Logistic Regression and XGBoost.
+- Tunes hyperparameters and the decision threshold, evaluating on held-out data.
+- Serves the chosen model through a small FastAPI app with a web UI.
+
+## Results (honest summary)
+
+Stroke is a rare event (~5% of patients), which makes it genuinely hard to predict.
+On the held-out **test set**, the tuned XGBoost model reaches roughly:
+
+| Metric | Value |
+| --- | --- |
+| ROC-AUC | ~0.81 |
+| PR-AUC | ~0.19 |
+| Recall | ~0.56 |
+| Precision | ~0.16 |
+
+The high ROC-AUC alongside a low PR-AUC is expected on imbalanced data — which is
+why this project leads with PR-AUC and recall rather than accuracy. Probability
+**calibration** is a known limitation and a planned improvement.
 
 ## Setup
 
@@ -23,7 +48,7 @@ On macOS, XGBoost needs the OpenMP runtime:
 brew install libomp
 ```
 
-Place the dataset at `data/dataset.csv` (see [data/README.md](data/README.md)).
+Place the dataset at `data/dataset.csv` (see [Data](#data) below).
 
 ## Train and serve
 
@@ -51,3 +76,19 @@ tests/             # pytest suite
 data/              # raw dataset (not tracked)
 models/            # trained artifacts (not tracked)
 ```
+
+## Data
+
+The dataset is **not included** in this repository. Download the Stroke
+Prediction Dataset from Kaggle and place it at `data/dataset.csv`:
+
+<https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset>
+
+**Dataset license:** educational use only; author credit required. It is
+redistributed here **nowhere** — you must obtain it from the source above.
+See [data/README.md](data/README.md).
+
+## License
+
+Source code is licensed under the [MIT License](LICENSE). The license covers the
+code only, **not** the dataset (see [Data](#data)).
