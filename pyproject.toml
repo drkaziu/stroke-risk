@@ -8,11 +8,14 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "fastapi>=0.141.1",
+    "jinja2>=3.1.6",
     "matplotlib>=3.11.1",
     "numpy>=2.5.2",
     "pandas>=3.0.5",
     "scikit-learn>=1.9.0",
     "shap>=0.52.0",
+    "uvicorn>=0.52.4",
     "xgboost>=3.4.1",
 ]
 
@@ -25,6 +28,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "ipykernel>=7.3.0",
     "nbstripout>=0.9.1",
     "pytest>=9.1.1",
@@ -40,3 +44,4 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
