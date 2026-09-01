@@ -16,6 +16,17 @@ RANDOM_SEED = 42
 ID_COL = "id"
 TARGET = "stroke"
 
+# Feature groups for preprocessing (discovered during EDA on the training split).
+NUMERIC_FEATURES = ["age", "avg_glucose_level", "bmi"]
+BINARY_FEATURES = ["hypertension", "heart_disease"]
+CATEGORICAL_FEATURES = [
+    "gender",
+    "ever_married",
+    "work_type",
+    "Residence_type",
+    "smoking_status",
+]
+
 # Split proportions of the full dataset: 60% train / 20% validation / 20% test.
 TEST_SIZE = 0.2
 VAL_SIZE = 0.2
