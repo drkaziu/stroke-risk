@@ -23,18 +23,20 @@ EDA → modelling → tuning → deployed API).
 ## Results (honest summary)
 
 Stroke is a rare event (~5% of patients), which makes it genuinely hard to predict.
-On the held-out **test set**, the tuned XGBoost model reaches roughly:
+On the held-out **test set**, the calibrated, tuned XGBoost model reaches roughly:
 
 | Metric | Value |
 | --- | --- |
-| ROC-AUC | ~0.81 |
-| PR-AUC | ~0.19 |
-| Recall | ~0.56 |
-| Precision | ~0.16 |
+| ROC-AUC | ~0.83 |
+| PR-AUC | ~0.23 |
+| Recall | ~0.68 |
+| Precision | ~0.15 |
+| Brier score | ~0.042 |
 
 The high ROC-AUC alongside a low PR-AUC is expected on imbalanced data — which is
-why this project leads with PR-AUC and recall rather than accuracy. Probability
-**calibration** is a known limitation and a planned improvement.
+why this project leads with PR-AUC and recall rather than accuracy. Probabilities
+are **calibrated** (isotonic), so the mean prediction (~0.046) matches the true
+stroke rate (~0.049). See the [model card](MODEL_CARD.md) for full details and limitations.
 
 ## Setup
 
