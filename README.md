@@ -38,6 +38,28 @@ why this project leads with PR-AUC and recall rather than accuracy. Probabilitie
 are **calibrated** (isotonic), so the mean prediction (~0.046) matches the true
 stroke rate (~0.049). See the [model card](MODEL_CARD.md) for full details and limitations.
 
+## Highlights
+
+Age is by far the strongest driver of stroke risk:
+
+![Stroke rate by age](reports/figures/age_risk.png)
+
+Performance on the test set — a strong ROC curve masking a hard precision–recall trade-off:
+
+![Precision–recall and ROC curves](reports/figures/pr_roc.png)
+
+Probabilities are calibrated, so predictions can be read as real risks:
+
+![Calibration curve](reports/figures/calibration.png)
+
+The model's reasoning (SHAP) — age, glucose and BMI dominate:
+
+![SHAP summary](reports/figures/shap_summary.png)
+
+The deployed demo app:
+
+![Web app](reports/figures/app.png)
+
 ## Setup
 
 Requires [uv](https://docs.astral.sh/uv/).
