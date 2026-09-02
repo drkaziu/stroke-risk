@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/drkaziu/stroke-risk/actions/workflows/ci.yml/badge.svg)](https://github.com/drkaziu/stroke-risk/actions/workflows/ci.yml)
 
+📊 **[View the interactive case study →](https://drkaziu.github.io/stroke-risk/)**
+
 Predicting stroke risk from clinical and demographic features — built as a
 professional, reproducible, end-to-end data science project (data pipeline →
 EDA → modelling → tuning → deployed API).

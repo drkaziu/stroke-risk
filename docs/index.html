@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="Predicting stroke risk — a data science case study, told honestly.">
+  <title>Stroke Risk — a data science case study</title>
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --muted: #5f6d66;
+      --bg: #f5f6f1;
+      --line: rgba(26, 26, 26, .13);
+      --accent: #e4572e;
+      --navy: #1b3a5b;
+      --glass-line: rgba(255, 255, 255, .82);
+      --shadow: 0 1.6rem 4.5rem rgba(60, 70, 64, .12), 0 .2rem .8rem rgba(45, 58, 50, .06);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      --pad: clamp(1.4rem, 5vw, 5rem);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 6% -8%, rgba(255, 173, 140, .45), transparent 34%),
+        radial-gradient(circle at 96% 4%, rgba(168, 202, 255, .40), transparent 33%),
+        radial-gradient(circle at 70% 105%, rgba(255, 200, 170, .38), transparent 38%),
+        linear-gradient(135deg, #fbfaf5 0%, #eef3f7 48%, #fbf4ee 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      color-scheme: light;
+    }
+
+    button { font: inherit; }
+
+    .glow {
+      position: fixed;
+      width: 48vw;
+      aspect-ratio: 1;
+      right: -20vw;
+      top: -25vw;
+      z-index: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      filter: blur(120px);
+      opacity: .14;
+      pointer-events: none;
+      transition: transform 1.2s var(--ease), background 1s ease;
+    }
+
+    .progress {
+      position: fixed;
+      z-index: 30;
+      left: 0; top: 0;
+      width: 100%; height: 3px;
+      background: rgba(26, 26, 26, .07);
+    }
+    .progress > span {
+      display: block; height: 100%;
+      transform-origin: left;
+      background: var(--accent);
+      transition: width .7s var(--ease);
+      box-shadow: 0 0 22px rgba(228, 87, 46, .3);
+    }
+
+    .deck { position: relative; z-index: 1; width: 100%; height: 100%; }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(1.2rem, 3.5vw, 3.4rem) var(--pad) clamp(4.6rem, 8vh, 6rem);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(6%, 0, 0) scale(.985);
+      transition: opacity .45s ease, transform .85s var(--ease), visibility .85s;
+    }
+    .slide.active {
+      opacity: 1; visibility: visible;
+      transform: translate3d(0, 0, 0) scale(1);
+      z-index: 2;
+    }
+    .slide.before { transform: translate3d(-5%, 0, 0) scale(.985); }
+
+    .eyebrow {
+      display: flex; align-items: center; gap: .75rem;
+      color: var(--muted);
+      font: 600 clamp(.64rem, .82vw, .78rem)/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-transform: uppercase; letter-spacing: .16em;
+    }
+    .eyebrow::before { content: ""; width: 2.1rem; height: 1px; background: currentColor; }
+
+    .content { align-self: center; min-height: 0; width: 100%; }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2 { margin-bottom: 0; font-weight: 720; letter-spacing: -.06em; line-height: .93; text-wrap: balance; }
+    h1 { font-size: clamp(3.2rem, 9vw, 8rem); }
+    h2 { font-size: clamp(2.4rem, 5.6vw, 5.4rem); }
+    h3 { margin-bottom: .5rem; font-size: clamp(1rem, 1.45vw, 1.4rem); letter-spacing: -.025em; }
+
+    .lede {
+      max-width: 44rem;
+      margin: clamp(1.1rem, 3vh, 2.2rem) 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.55vw, 1.45rem);
+      line-height: 1.5;
+      text-wrap: balance;
+    }
+
+    .accent { color: var(--accent); }
+    .navy { color: var(--navy); }
+
+    .meta {
+      display: flex; justify-content: space-between; gap: 1rem;
+      color: #68756e;
+      font: 500 clamp(.62rem, .75vw, .74rem)/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-transform: uppercase; letter-spacing: .12em;
+    }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: .5rem;
+      margin-top: 1.5rem; padding: .55rem .8rem;
+      color: var(--accent);
+      border: 1px solid rgba(228, 87, 46, .3);
+      border-radius: 99rem;
+      background: rgba(255, 255, 255, .64);
+      font: 600 .72rem/1 ui-monospace, monospace;
+    }
+    .pill::before { content: "\26A0"; }
+
+    /* Figure slides */
+    .figure-slide { display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); gap: clamp(1.6rem, 4vw, 4rem); align-items: center; }
+    .figure-text .lede { margin-top: 1rem; }
+    .figure {
+      border: 1px solid var(--glass-line);
+      border-radius: 1.4rem;
+      background: rgba(255, 255, 255, .66);
+      box-shadow: var(--shadow), inset 0 1px 0 white;
+      backdrop-filter: blur(24px) saturate(135%);
+      padding: clamp(.8rem, 1.6vw, 1.4rem);
+      overflow: hidden;
+    }
+    .figure img { display: block; width: 100%; height: auto; max-height: 52vh; object-fit: contain; border-radius: .8rem; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: clamp(.8rem, 1.6vw, 1.4rem); margin-top: clamp(1.6rem, 4vh, 3rem); }
+    .stat {
+      padding: clamp(1rem, 2vw, 1.6rem);
+      border: 1px solid var(--glass-line);
+      border-radius: 1.2rem;
+      background: rgba(255, 255, 255, .6);
+      box-shadow: var(--shadow), inset 0 1px 0 white;
+      backdrop-filter: blur(20px) saturate(135%);
+    }
+    .stat b { display: block; font-size: clamp(1.9rem, 3.4vw, 3rem); font-weight: 760; letter-spacing: -.05em; line-height: 1; color: var(--accent); }
+    .stat span { display: block; margin-top: .5rem; color: var(--muted); font-size: clamp(.76rem, 1vw, .92rem); line-height: 1.35; }
+
+    .oversized { color: var(--accent); font-size: clamp(7rem, 22vw, 20rem); font-weight: 750; line-height: .75; letter-spacing: -.09em; }
+    .big-idea { display: grid; grid-template-columns: .8fr 1.2fr; align-items: center; gap: clamp(2rem, 8vw, 8rem); }
+    .definition { font-size: clamp(1.5rem, 3.3vw, 3.4rem); font-weight: 540; line-height: 1.15; letter-spacing: -.04em; text-wrap: balance; }
+    .definition small { display: block; margin-top: 1.2rem; color: var(--muted); font-size: clamp(.9rem, 1.3vw, 1.15rem); line-height: 1.5; letter-spacing: 0; }
+
+    .steps { display: grid; gap: .7rem; margin-top: clamp(1.4rem, 4vh, 2.6rem); }
+    .step {
+      display: grid; grid-template-columns: 2.6rem 1fr; gap: 1rem; align-items: start;
+      padding: clamp(.9rem, 1.8vh, 1.3rem) clamp(1rem, 2vw, 1.5rem);
+      border: 1px solid var(--glass-line); border-radius: 1rem;
+      background: rgba(255, 255, 255, .58);
+      box-shadow: 0 .7rem 2.2rem rgba(55, 68, 60, .07), inset 0 1px 0 white;
+      backdrop-filter: blur(18px) saturate(135%);
+    }
+    .step .n { color: var(--accent); font: 700 1.1rem/1 ui-monospace, monospace; }
+    .step h3 { margin: 0 0 .25rem; font-size: clamp(.98rem, 1.3vw, 1.2rem); }
+    .step p { margin: 0; color: var(--muted); font-size: clamp(.8rem, 1vw, .95rem); line-height: 1.45; }
+
+    .links { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: clamp(1.5rem, 4vh, 2.6rem); }
+    .links a {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .8rem 1.2rem; border-radius: .9rem;
+      color: white; background: var(--ink); text-decoration: none;
+      font: 600 .9rem/1 -apple-system, sans-serif;
+      transition: background .2s, transform .2s;
+    }
+    .links a:hover { background: #000; transform: translateY(-2px); }
+    .links a.ghost { color: var(--ink); background: rgba(255,255,255,.66); border: 1px solid var(--glass-line); }
+
+    .final-mark { color: var(--accent); font-size: clamp(7rem, 18vw, 17rem); font-weight: 800; line-height: .65; letter-spacing: -.14em; }
+    .finale { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 2rem; }
+    .finale h2 { max-width: 14ch; }
+
+    .controls {
+      position: fixed; z-index: 50;
+      right: max(1rem, env(safe-area-inset-right));
+      bottom: max(1rem, env(safe-area-inset-bottom));
+      display: flex; align-items: center; gap: .45rem; padding: .35rem;
+      border: 1px solid var(--glass-line); border-radius: 99rem;
+      background: rgba(255, 255, 255, .72);
+      box-shadow: 0 .8rem 2.5rem rgba(55, 68, 60, .13), inset 0 1px 0 white;
+      backdrop-filter: blur(20px) saturate(140%);
+    }
+    .controls button {
+      display: grid; place-items: center; width: 2.35rem; aspect-ratio: 1;
+      padding: 0; border: 0; border-radius: 50%; color: var(--ink);
+      background: transparent; cursor: pointer;
+      transition: color .2s, background .2s, transform .2s;
+    }
+    .controls button:hover { color: white; background: var(--accent); transform: scale(1.05); }
+    .controls button:disabled { opacity: .25; cursor: default; transform: none; background: transparent; color: var(--ink); }
+    .counter { min-width: 4.3rem; text-align: center; color: var(--muted); font: 600 .68rem/1 ui-monospace, monospace; }
+
+    .hint {
+      position: fixed; z-index: 25; left: var(--pad); bottom: 1.6rem;
+      display: flex; align-items: center; gap: .7rem; color: #67746d;
+      font: 500 .66rem/1 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .1em;
+      transition: opacity .5s ease;
+    }
+    .hint kbd { display: inline-grid; place-items: center; width: 1.6rem; height: 1.35rem; border: 1px solid rgba(26,26,26,.23); border-radius: .2rem; color: #5f6d66; font: inherit; }
+    body.interacted .hint { opacity: 0; }
+
+    .overview {
+      position: fixed; inset: 0; z-index: 40;
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem;
+      padding: clamp(4rem, 7vw, 7rem) var(--pad); overflow: auto;
+      visibility: hidden; opacity: 0;
+      background: rgba(244, 247, 243, .82);
+      backdrop-filter: blur(35px) saturate(135%);
+      transition: opacity .35s ease, visibility .35s;
+    }
+    body.show-overview .overview { visibility: visible; opacity: 1; }
+    .thumb {
+      position: relative; aspect-ratio: 16 / 10; padding: 1rem; color: var(--ink); text-align: left;
+      border: 1px solid var(--glass-line); border-radius: 1.1rem;
+      background: rgba(255, 255, 255, .66);
+      box-shadow: 0 1rem 3rem rgba(55, 68, 60, .1), inset 0 1px 0 white;
+      cursor: pointer; overflow: hidden;
+      transition: transform .25s ease, border-color .25s ease;
+    }
+    .thumb:hover, .thumb.current { transform: translateY(-.25rem); border-color: var(--accent); }
+    .thumb b { display: block; max-width: 12ch; font-size: clamp(.95rem, 1.5vw, 1.5rem); line-height: .98; letter-spacing: -.04em; }
+    .thumb span { position: absolute; bottom: .8rem; left: 1rem; color: var(--muted); font: .65rem/1 ui-monospace, monospace; }
+
+    @media (max-width: 900px) {
+      .figure-slide, .big-idea, .finale { grid-template-columns: 1fr; gap: 1.4rem; }
+      .figure { max-height: 46vh; }
+      .figure img { max-height: 42vh; object-fit: contain; }
+      .overview { grid-template-columns: repeat(2, 1fr); }
+      .oversized { position: absolute; right: 5vw; bottom: 12vh; opacity: .12; }
+    }
+    @media (max-width: 680px) {
+      .slide { padding-top: 1.3rem; }
+      h1 { font-size: clamp(2.9rem, 15vw, 4.6rem); }
+      .hint { display: none; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <main class="deck" id="deck" aria-live="polite">
+
+    <section class="slide active" data-title="Predicting stroke, honestly">
+      <div class="eyebrow">Data science case study · 8 min</div>
+      <div class="content">
+        <h1>Predicting stroke,<br><span class="accent">honestly.</span></h1>
+        <p class="lede">An end-to-end machine-learning project — from a leak-free data pipeline to a calibrated, deployed model — built to show <strong style="color:var(--ink)">judgment</strong>, not just accuracy.</p>
+        <span class="pill">Educational demo — not for real diagnosis</span>
+      </div>
+      <div class="meta"><span>Stroke Risk</span><span>Press → to begin</span></div>
+    </section>
+
+    <section class="slide" data-title="The problem">
+      <div class="eyebrow">Why this is hard</div>
+      <div class="content big-idea">
+        <div class="oversized" aria-hidden="true">~5%</div>
+        <div class="definition">Stroke is a <span class="accent">rare, high-cost</span> event.
+          <small>Only about 1 in 20 patients in the data had a stroke. A model that predicts “no stroke” for everyone is already ~95% accurate — and completely useless. Accuracy is the wrong goal.</small>
+        </div>
+      </div>
+      <div class="meta"><span>01 · The problem</span><span>Rare events break naive metrics</span></div>
+    </section>
+
+    <section class="slide" data-title="The data">
+      <div class="eyebrow">5,110 patients · 11 features</div>
+      <div class="content figure-slide">
+        <div class="figure-text">
+          <h2>The <span class="accent">data.</span></h2>
+          <p class="lede">Public clinical and demographic records, split <strong style="color:var(--ink)">60/20/20</strong> with stratification. The class imbalance below is the central challenge.</p>
+        </div>
+        <div class="figure"><img src="figures/target_balance.png" alt="Only about 1 in 20 patients had a stroke"></div>
+      </div>
+      <div class="meta"><span>02 · The data</span><span>Stratified train / validation / test</span></div>
+    </section>
+
+    <section class="slide" data-title="Age dominates">
+      <div class="eyebrow">Exploratory analysis</div>
+      <div class="content figure-slide">
+        <div class="figure-text">
+          <h2>Age is the<br><span class="accent">dominant driver.</span></h2>
+          <p class="lede">Risk climbs steeply after 60. Glucose and BMI matter too — but most other “signals” (marriage, work type) are really just age in disguise.</p>
+        </div>
+        <div class="figure"><img src="figures/age_risk.png" alt="Stroke rate climbs steeply with age"></div>
+      </div>
+      <div class="meta"><span>03 · EDA</span><span>Correlation is not causation</span></div>
+    </section>
+
+    <section class="slide" data-title="The leakage trap">
+      <div class="eyebrow">The part that matters most</div>
+      <div class="content">
+        <h2>Avoiding the<br><span class="accent">leakage trap.</span></h2>
+        <div class="steps">
+          <div class="step"><span class="n">01</span><div><h3>Split before cleaning</h3><p>Every learned step (imputation, scaling, encoding) is fit on the training set only — inside a scikit-learn pipeline that enforces the boundary.</p></div></div>
+          <div class="step"><span class="n">02</span><div><h3>Never impute with the target</h3><p>BMI differs by outcome, so filling it per stroke-group would leak the answer. We use the overall training median instead.</p></div></div>
+          <div class="step"><span class="n">03</span><div><h3>Tune on validation, test once</h3><p>Hyperparameters and the decision threshold are chosen on validation. The test set is touched exactly once, at the very end.</p></div></div>
+        </div>
+      </div>
+      <div class="meta"><span>04 · Methodology</span><span>Leak-free by construction</span></div>
+    </section>
+
+    <section class="slide" data-title="Honest results">
+      <div class="eyebrow">Held-out test set</div>
+      <div class="content figure-slide">
+        <div class="figure-text">
+          <h2>An honest<br><span class="accent">result.</span></h2>
+          <p class="lede">A strong ROC curve hides a hard precision–recall trade-off — which is why this project leads with <strong style="color:var(--ink)">PR-AUC</strong>. On the held-out test set: <strong style="color:var(--accent)">ROC-AUC 0.83</strong> · PR-AUC 0.23 · Recall 0.68.</p>
+        </div>
+        <div class="figure"><img src="figures/pr_roc.png" alt="Precision-recall and ROC curves"></div>
+      </div>
+      <div class="meta"><span>05 · Results</span><span>PR-AUC over ROC on imbalance</span></div>
+    </section>
+
+    <section class="slide" data-title="The trade-off">
+      <div class="eyebrow">A policy choice, not a bug</div>
+      <div class="content figure-slide">
+        <div class="figure-text">
+          <h2>Catch strokes,<br><span class="accent">accept false alarms.</span></h2>
+          <p class="lede">At the chosen threshold the model catches most strokes (high recall) at the cost of many false positives. Where to set that line is a <strong style="color:var(--ink)">clinical decision</strong>, not a data one.</p>
+        </div>
+        <div class="figure"><img src="figures/confusion_matrix.png" alt="Test-set confusion matrix"></div>
+      </div>
+      <div class="meta"><span>06 · Threshold</span><span>Recall vs precision</span></div>
+    </section>
+
+    <section class="slide" data-title="Calibration">
+      <div class="eyebrow">Probabilities you can trust</div>
+      <div class="content figure-slide">
+        <div class="figure-text">
+          <h2>Calibrated,<br><span class="accent">not just ranked.</span></h2>
+          <p class="lede">Isotonic calibration makes the numbers mean something: the average predicted probability (~0.046) matches the true stroke rate (~0.049). Brier score ~0.042.</p>
+        </div>
+        <div class="figure"><img src="figures/calibration.png" alt="Reliability curve on the test set"></div>
+      </div>
+      <div class="meta"><span>07 · Calibration</span><span>Reliable probabilities</span></div>
+    </section>
+
+    <section class="slide" data-title="Explainability">
+      <div class="eyebrow">Why the model decides</div>
+      <div class="content figure-slide">
+        <div class="figure-text">
+          <h2>Opening the<br><span class="accent">black box.</span></h2>
+          <p class="lede">SHAP values confirm the story: age, average glucose and BMI drive predictions — matching the exploratory analysis, not contradicting it.</p>
+        </div>
+        <div class="figure"><img src="figures/shap_summary.png" alt="SHAP summary plot"></div>
+      </div>
+      <div class="meta"><span>08 · Explainability</span><span>SHAP agrees with the EDA</span></div>
+    </section>
+
+    <section class="slide" data-title="Deployment">
+      <div class="eyebrow">From notebook to product</div>
+      <div class="content figure-slide">
+        <div class="figure-text">
+          <h2>A working<br><span class="accent">product.</span></h2>
+          <p class="lede">The calibrated model is served by a FastAPI app with validated inputs — reproducible (uv + lockfile), tested (pytest), and green on CI.</p>
+        </div>
+        <div class="figure"><img src="figures/app.png" alt="The deployed web app"></div>
+      </div>
+      <div class="meta"><span>09 · Deployment</span><span>FastAPI · tested · CI</span></div>
+    </section>
+
+    <section class="slide" data-title="What it demonstrates">
+      <div class="eyebrow">One thing to remember</div>
+      <div class="content finale">
+        <div>
+          <h2>Judgment beats<br><span class="accent">a big number.</span></h2>
+          <p class="lede">Leak-free data, the right metric, calibrated probabilities, and an honest account of the limits — end to end.</p>
+          <div class="links">
+            <a href="https://github.com/drkaziu/stroke-risk">View the code on GitHub →</a>
+            <a class="ghost" href="https://github.com/drkaziu/stroke-risk/blob/main/MODEL_CARD.md">Model card</a>
+          </div>
+        </div>
+        <div class="final-mark" aria-hidden="true">●</div>
+      </div>
+      <div class="meta"><span>10 · Close</span><span>Stroke Risk · case study</span></div>
+    </section>
+
+  </main>
+
+  <div class="hint" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd><span>navigate · O overview</span></div>
+
+  <nav class="controls" aria-label="Presentation controls">
+    <button id="prev" type="button" aria-label="Previous slide" title="Previous (←)">←</button>
+    <div class="counter"><span id="current">01</span> / <span id="total">10</span></div>
+    <button id="overviewButton" type="button" aria-label="Overview" title="Overview (O)">⌘</button>
+    <button id="next" type="button" aria-label="Next slide" title="Next (→)">→</button>
+  </nav>
+
+  <div class="overview" id="overview" role="dialog" aria-label="Slide overview" aria-modal="true"></div>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const progress = document.getElementById('progressBar');
+      const currentLabel = document.getElementById('current');
+      const totalLabel = document.getElementById('total');
+      const prevButton = document.getElementById('prev');
+      const nextButton = document.getElementById('next');
+      const overviewButton = document.getElementById('overviewButton');
+      const overview = document.getElementById('overview');
+      const glow = document.querySelector('.glow');
+      const glowMoves = ['0,0', '-14vw,16vh', '-30vw,36vh', '-52vw,14vh', '-36vw,52vh', '-10vw,40vh', '-46vw,26vh', '-22vw,60vh', '-56vw,44vh', '-14vw,52vh'];
+      let index = Math.max(0, Math.min(slides.length - 1, Number(location.hash.slice(1)) - 1 || 0));
+      let wheelLocked = false;
+      let touchStartX = 0;
+
+      totalLabel.textContent = String(slides.length).padStart(2, '0');
+
+      slides.forEach((slide, i) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'thumb';
+        button.innerHTML = `<b>${slide.dataset.title}</b><span>${String(i + 1).padStart(2, '0')}</span>`;
+        button.addEventListener('click', () => { go(i); toggleOverview(false); });
+        overview.appendChild(button);
+      });
+
+      function render(updateHash = true) {
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === index);
+          slide.classList.toggle('before', i < index);
+          slide.setAttribute('aria-hidden', i === index ? 'false' : 'true');
+        });
+        [...overview.children].forEach((thumb, i) => thumb.classList.toggle('current', i === index));
+        currentLabel.textContent = String(index + 1).padStart(2, '0');
+        progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+        glow.style.transform = `translate(${glowMoves[index % glowMoves.length]}) scale(${index % 2 ? 1.1 : .92})`;
+        prevButton.disabled = index === 0;
+        nextButton.disabled = index === slides.length - 1;
+        if (updateHash) history.replaceState(null, '', `#${index + 1}`);
+      }
+
+      function go(nextIndex) {
+        const bounded = Math.max(0, Math.min(slides.length - 1, nextIndex));
+        if (bounded === index) return;
+        index = bounded;
+        document.body.classList.add('interacted');
+        render();
+      }
+
+      function toggleOverview(force) {
+        const open = typeof force === 'boolean' ? force : !document.body.classList.contains('show-overview');
+        document.body.classList.toggle('show-overview', open);
+        if (open) overview.children[index].focus();
+        else overviewButton.focus();
+      }
+
+      prevButton.addEventListener('click', () => go(index - 1));
+      nextButton.addEventListener('click', () => go(index + 1));
+      overviewButton.addEventListener('click', () => toggleOverview());
+
+      window.addEventListener('keydown', (event) => {
+        if (event.key.toLowerCase() === 'o') { event.preventDefault(); toggleOverview(); return; }
+        if (event.key === 'Escape' && document.body.classList.contains('show-overview')) { toggleOverview(false); return; }
+        if (document.body.classList.contains('show-overview')) return;
+        if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); go(index + 1); }
+        if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) { event.preventDefault(); go(index - 1); }
+        if (event.key === 'Home') { event.preventDefault(); go(0); }
+        if (event.key === 'End') { event.preventDefault(); go(slides.length - 1); }
+      });
+
+      window.addEventListener('wheel', (event) => {
+        if (wheelLocked || document.body.classList.contains('show-overview') || Math.abs(event.deltaY) < 24) return;
+        wheelLocked = true;
+        go(index + (event.deltaY > 0 ? 1 : -1));
+        setTimeout(() => { wheelLocked = false; }, 700);
+      }, { passive: true });
+
+      window.addEventListener('touchstart', (event) => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
+      window.addEventListener('touchend', (event) => {
+        const delta = touchStartX - event.changedTouches[0].clientX;
+        if (Math.abs(delta) > 55) go(index + (delta > 0 ? 1 : -1));
+      }, { passive: true });
+
+      window.addEventListener('hashchange', () => {
+        const requested = Number(location.hash.slice(1)) - 1;
+        if (Number.isInteger(requested) && requested >= 0 && requested < slides.length) { index = requested; render(false); }
+      });
+
+      render(false);
+    })();
+  </script>
+</body>
+</html>
