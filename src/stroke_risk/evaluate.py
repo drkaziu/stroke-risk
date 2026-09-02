@@ -8,6 +8,7 @@ on the test set.
 
 import numpy as np
 import pandas as pd
+from sklearn.calibration import calibration_curve
 from sklearn.metrics import (
     average_precision_score,
     confusion_matrix,
@@ -84,6 +85,20 @@ def plot_confusion_matrix(ax, y_true, y_pred) -> None:
                 color="white" if cm[i, j] > threshold else pl.INK,
                 fontsize=13, fontweight="bold",
             )
+
+
+def plot_calibration_curve(ax, y_true, y_proba, label: str, *, bins: int = 10) -> None:
+    frac_pos, mean_pred = calibration_curve(
+        y_true, y_proba, n_bins=bins, strategy="quantile"
+    )
+    ax.plot([0, 1], [0, 1], color=pl.SUBTLE, lw=1, ls="--")
+    ax.plot(mean_pred, frac_pos, "o-", color=pl.ACCENT, lw=2, label=label)
+    ax.set_xlabel("Mean predicted probability")
+    ax.set_ylabel("Observed fraction positive")
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.grid(False)
+    ax.legend(loc="upper left")
 
 
 def metrics_table(results: dict[str, dict[str, float]]) -> pd.DataFrame:

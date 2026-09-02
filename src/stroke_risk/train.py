@@ -17,6 +17,7 @@ import warnings
 
 import joblib
 import pandas as pd
+from sklearn.calibration import CalibratedClassifierCV
 
 from stroke_risk import config, evaluate, tune
 from stroke_risk.data import load_raw, split_data
@@ -41,19 +42,27 @@ def train_model(n_iter: int = 30) -> dict:
         proba_val = search.best_estimator_.predict_proba(X_val)[:, 1]
         val_pr_auc[name] = evaluate.summarize(y_val, proba_val, 0.5)["PR-AUC"]
     winner = max(val_pr_auc, key=val_pr_auc.get)
+    base = searches[winner].best_estimator_
 
-    best = searches[winner].best_estimator_
-    threshold = evaluate.choose_threshold(y_val, best.predict_proba(X_val)[:, 1])
+    # Calibrate probabilities: class weighting distorts them, so we map raw
+    # scores to reliable probabilities via cross-fitted isotonic regression.
+    calibrated = CalibratedClassifierCV(base, method="isotonic", cv=5)
+    calibrated.fit(X_train, y_train)
+    threshold = evaluate.choose_threshold(
+        y_val, calibrated.predict_proba(X_val)[:, 1]
+    )
 
     # Refit on train + validation to give the deployed model more data.
     X_fit = pd.concat([X_train, X_val])
     y_fit = pd.concat([y_train, y_val])
-    best.fit(X_fit, y_fit)
+    final = CalibratedClassifierCV(base, method="isotonic", cv=5)
+    final.fit(X_fit, y_fit)
 
     return {
-        "model": best,
+        "model": final,
         "threshold": float(threshold),
         "model_name": winner,
+        "calibration": "isotonic",
         "params": searches[winner].best_params_,
         "feature_columns": list(X_fit.columns),
         "trained_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
